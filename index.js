@@ -22,6 +22,8 @@ mongoose.connection.on("connected", () => {
 });
 
 const app = express();
+const db = mongoose.connection;
+
 
 app.use(
   cors({
@@ -38,7 +40,7 @@ const sessionOptions = {
   saveUninitialized: false,
   cookie: {
     secure: false,
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
   },
 };
@@ -56,7 +58,7 @@ app.use(express.json());
 
 UserRoutes(app);
 CourseRoutes(app);
-ModulesRoutes(app);
+ModulesRoutes(app, db);
 AssignmentsRoutes(app);
 EnrollmentsRoutes(app);
 
