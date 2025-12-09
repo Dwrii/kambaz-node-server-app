@@ -59,21 +59,13 @@ export default function QuizRoutes(app) {
   
 
   app.get("/api/quizzes/:quizId", async (req, res) => {
-    const user = req.session["currentUser"];
     const quiz = await quizDao.findQuizById(req.params.quizId);
-
-    if (!quiz) return res.sendStatus(404);
-
-    const isTeacher =
-      user?.role === "ADMIN" ||
-      user?.role === "FACULTY" ||
-      user?.role === "TA";
-
-    if (isTeacher) return res.json(quiz);
-
-    if (quiz.published === true) return res.json(quiz);
-
-    return res.status(403).json({ message: "Quiz not available" });
+  
+    if (!quiz) {
+      return res.sendStatus(404);
+    }
+    
+    res.json(quiz);
   });
 
   app.put("/api/quizzes/:quizId", async (req, res) => {
