@@ -38,14 +38,22 @@ export default function UserRoutes(app) {
   };
 
   const updateUser = async (req, res) => {
-    const { userId } = req.params;
-    const userUpdates = req.body;
-    await dao.updateUser(userId, userUpdates);
-    const currentUser = req.session["currentUser"];
-    if (currentUser && currentUser._id === userId) {
-      req.session["currentUser"] = { ...currentUser, ...userUpdates };
+    try {
+      const { userId } = req.params;
+      const userUpdates = req.body;
+
+      const updatedUser = await dao.updateUser(userId, userUpdates);
+
+      const sessionUser = req.session["currentUser"];
+      if (sessionUser && String(sessionUser._id) === String(userId)) {
+        req.session["currentUser"] = updatedUser;
+      }
+
+      res.json(updatedUser);
+    } catch (err) {
+      console.error("Error updating user", err);
+      res.status(500).json({ message: "Error updating user" });
     }
-    res.json(currentUser);
   };
 
   const signup = async (req, res) => {
@@ -68,7 +76,9 @@ export default function UserRoutes(app) {
       req.session["currentUser"] = currentUser;
       res.json(currentUser);
     } else {
-      res.status(401).json({ message: "Unable to login. Try again later." });
+      res
+        .status(401)
+        .json({ message: "Unable to login. Try again later." });
     }
   };
 
@@ -95,5 +105,4 @@ export default function UserRoutes(app) {
   app.post("/api/users/signin", signin);
   app.post("/api/users/signout", signout);
   app.get("/api/users/profile", profile);
-
 }

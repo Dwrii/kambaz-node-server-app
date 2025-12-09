@@ -12,50 +12,51 @@ export default function QuizRoutes(app) {
   app.get("/api/courses/:courseId/quizzes", async (req, res) => {
     const { courseId } = req.params;
     const user = req.session["currentUser"];
-
+  
     let quizzes = await quizDao.findQuizzesForCourse(courseId);
-
+  
     quizzes = quizzes.map((q) => {
       const obj = q.toObject();
       obj.published = Boolean(obj.published);
       return obj;
     });
-
+  
     const isTeacher =
       user?.role === "ADMIN" ||
       user?.role === "FACULTY" ||
       user?.role === "TA";
-
+  
     if (isTeacher) {
       return res.json(quizzes);
     }
-
+  
     const isStudent = !isTeacher;
-
+  
     if (isStudent) {
       const visibleQuizzes = await Promise.all(
         quizzes
           .filter((q) => q.published === true)
           .map(async (quiz) => {
             if (!user) return quiz;
-
+  
             const attempts = await attemptsDao.findAttemptsForQuizByUser(
               quiz._id,
               user._id
             );
-
+  
             const score =
               attempts.length > 0 ? attempts[attempts.length - 1].score : null;
-
+  
             return { ...quiz, score };
           })
       );
-
+  
       return res.json(visibleQuizzes);
     }
-
+  
     res.json(quizzes);
   });
+  
 
   app.get("/api/quizzes/:quizId", async (req, res) => {
     const user = req.session["currentUser"];
