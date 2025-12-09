@@ -77,7 +77,13 @@ export default function QuizRoutes(app) {
   });
 
   app.put("/api/quizzes/:quizId", async (req, res) => {
-    const updated = await quizDao.updateQuiz(req.params.quizId, req.body);
+    const updates = { ...req.body };
+  
+    if (Array.isArray(updates.questions)) {
+      updates.numQuestions = updates.questions.length;
+    }
+  
+    const updated = await quizDao.updateQuiz(req.params.quizId, updates);
     res.json(updated);
   });
 
